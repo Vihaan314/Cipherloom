@@ -9,6 +9,30 @@ from Constants import *
 String processing
 """
 
+def getNextLetterIndex(string: str, index: str) -> int:
+    """
+    Returns the index of the next letter starting from an index in a string
+    """
+    while index < len(string) - 1:
+        index += 1
+        if string[index].isalpha():
+            return index
+    return -1
+
+def replaceChars(string: str, chars: list[str], subs: list[str]) -> str:
+    """
+    Substitutes multiple characters in string
+    """
+    for i in range(0, len(chars)):
+        string = string.replace(chars[i], subs[i])
+    return string
+
+def getLastOccurance(string: str, target: str):
+    """
+    Returns the index of the last occurance of a target character in a string
+    """
+    return len(string) - 1 - string[::-1].index(target)
+
 def filterAlphabetical(message: str) -> str:
     """
     Removes all non-alphabetical characters from string
@@ -22,23 +46,58 @@ def splitMessage(message, chunk_size: int) -> list[str]:
     message = filterAlphabetical(message)
     return [message[i:i+chunk_size] for i in range(0, len(message), chunk_size)]
 
-def fillLetters(message: str, fillerLetter: str, pad = True) -> str:
-    """
-    Set up message for the playfair cipher
-    """
+##def fillLetters(message: str, fillerLetter: str, pad = True) -> str:
+##    """
+##    Set up message for the playfair cipher
+##    """
+##    i, digraphIndex = 0, 0
+##    while i < len(message) - 1:
+##        if message[i] != " ":
+##            if digraphIndex % 2 == 0 and message[i] == message[i + 1]:
+##                message = message[:i + 1] + "x" + message[i + 1:]
+##                i += 1
+##                digraphIndex += 1
+##            digraphIndex += 1
+##        i += 1
+##    digraphIndex += 1
+##    return message + ((("x" if message[-1] != "x" else fillerLetter) if digraphIndex % 2 else "") if pad else "")
+
+def fillLetters(message: str, fillerLetter: str):
     i, digraphIndex = 0, 0
+    fillerIndices = []
+    duplicateCount = 0
     while i < len(message) - 1:
-        if message[i] != " ":
-            if digraphIndex % 2 == 0 and message[i] == message[i + 1]:
-                message = message[:i + 1] + "x" + message[i + 1:]
-                i += 1
+        if message[i].isalpha():
+            if digraphIndex % 2 == 0 and getNextLetterIndex(message, i) != -1 and message[i].lower() == message[getNextLetterIndex(message, i)].lower():
+                message = message[:i + 1] + fillerLetter + message[i + 1:]
+                fillerIndices.append(i + 1)
+                i += 1  
                 digraphIndex += 1
+                duplicateCount += 1
             digraphIndex += 1
         i += 1
-    digraphIndex += 1
-    return message + ((("x" if message[-1] != "x" else fillerLetter) if digraphIndex % 2 else "") if pad else "")
+
+##        if message[i].isalpha():
+##            if digraphIndex % 2 == 0 and message[i] == message[i + 1]:
+##                message = message[:i + 1] + fillerLetter + message[i + 1:]
+##                fillerIndices.append(i + 1)
+##                i += 1  
+##                digraphIndex += 1
+##                duplicateCount += 1
+##            digraphIndex += 1
+##        i += 1
+    digraphIndex+=1
+    puncCount = len(list(filter(lambda x: not x.isalpha(), message)))
+    if len(filterAlphabetical(message)) % 2:
+        insertPos = getLastOccurance(message, filterAlphabetical(message)[-1])+1
+##        insertPos = message[:].index(filterAlphabetical(message)[-1])+1
+        fillerIndices.append(insertPos)
+        message = message[0:insertPos] + "x" + message[insertPos:]
+        
+    return message, fillerIndices
+
     
-def applySpacing(originalMessage: str, modifiedMessage: str) -> str:
+def applyPunctuation(originalMessage: str, modifiedMessage: str) -> str:
     """
     Adds spacing from original message to modified message
     """
@@ -48,15 +107,36 @@ def applySpacing(originalMessage: str, modifiedMessage: str) -> str:
                 modifiedMessage = modifiedMessage[0:i] + originalMessage[i] + modifiedMessage[i:]
                 
     return modifiedMessage    
-    
-def formatMessage(originalMessage, modifiedMessage, pad_length = 0) -> str:
+
+def addFillerIndices(originalMessage, fillerIndices, fillerLetter = "x"):
+    print(originalMessage)
+    addedFillers = list(originalMessage)
+    offset = 0
+    for index in sorted(fillerIndices):
+        actualIndex = index + offset
+        if actualIndex <= len(addedFillers):
+            addedFillers.insert(actualIndex, fillerLetter)
+            offset += 1
+    return "".join(addedFillers)
+
+##def formatMessage(originalMessage, modifiedMessage, pad_length = 0) -> str:
+##    """
+##    originalMessage: The original message with capitalized and spacing
+##    modifiedMessage: Encrypted / decrypted message to be formatted 
+##    """
+##    modifiedMessage = applyPunctuation(originalMessage, modifiedMessage)
+##    return "".join([modifiedMessage[i].lower() if originalMessage[i].islower() else modifiedMessage[i].upper() if originalMessage[i].isupper() else originalMessage[i]
+##                    for i in range(0, len(originalMessage))]) + ("" if not pad_length else (modifiedMessage[-1] if pad_length == 1 else (modifiedMessage[-(pad_length):-1]+modifiedMessage[-1])))
+def formatMessage(originalMessage, modifiedMessage, fillerIndices = []) -> str:
     """
     originalMessage: The original message with capitalized and spacing
     modifiedMessage: Encrypted / decrypted message to be formatted 
     """
-    modifiedMessage = applySpacing(originalMessage, modifiedMessage)
+    originalMessage, fillerIndices = fillLetters(replaceChars(originalMessage, ["j", "J"], ["i", "I"]), "x")
+    print("OM", originalMessage)
+    modifiedMessage = applyPunctuation(originalMessage, modifiedMessage)
     return "".join([modifiedMessage[i].lower() if originalMessage[i].islower() else modifiedMessage[i].upper() if originalMessage[i].isupper() else originalMessage[i]
-                    for i in range(0, len(originalMessage))]) + ("" if not pad_length else (modifiedMessage[-1] if pad_length == 1 else (modifiedMessage[-(pad_length):-1]+modifiedMessage[-1])))
+                    for i in range(0, len(originalMessage))])
 
 def translateTextFromTable(message, translationTable: dict) -> str:
     """
@@ -153,6 +233,9 @@ def rearrangeColumn(arr: np.ndarray, column: int, key: list[int]) -> np.ndarray:
     return [arr[i, column] for i in key]
 
 def toSquareMatrix(arr: list[list[int]], oneDim = False):
+    """
+    Converts default list to numpy square array
+    """
     length = int(math.sqrt(len(arr))) if oneDim else len(arr)
     return np.array(arr).reshape(length, length)
     

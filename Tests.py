@@ -135,13 +135,24 @@ class TestCipherMethods(unittest.TestCase):
                 
         
     #PLAYFAIR CIPHER
+                #Dcode
+                #Jazz, dude sirs! What you doing?
+                #Jazz, dude sirs! What you doing
+                #Jazz, dude sirs! Weelh you doing?
+                #Jazz, dude sirs! Weelh you doing
+                #Jazz, dude sirs Weelh you jazzin
+                #Jazz, dude sirs! Stop the jazz?
+                #Jazz, dude sirs! Stop, pls jazz? Ab123
     @parameterized.expand([
         ("standard case", "Pictures", "mango", "Hkerqsdt"),
         ("non-alphabetical", "Hello, World!", "diamond", "Lbkyp, Mzith!"),
         ("uneven message", "Hello man", "Apple"),
-        ("duplicate letters", ),
-        ("duplicate letters, uneven", ),
-        ("filler letter", ),
+        ("edge case 1", "dcode", ""),
+        ("edge case 2", "Jazz, dude sirs! What you doing?"),
+        ("edge case 3", "Jazz, dude sirs! What you doing"),
+        ("edge case 4", "Jazz, dude sirs! Weelh you doing?"),
+        ("edge case 5", "Jazz, dude sirs Weelh you jazzin", ),
+        ("edge case 6", "Jazz, dude sirs! Stop the jazz", ),
     ])
     def test_playfairCipher(self, name, input_text, key, expected):
         encrypted = playfairCipher(input_text, key)

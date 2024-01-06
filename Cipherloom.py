@@ -151,14 +151,16 @@ def decryptHill(message, key: str):
 
 
 #PLAYFAIR CIPHER ENCRYPTION
-def playfairCipher(message, key: str, fillerLetter = "z", decrypt: int = 1):    
-    processedMessage = fillLetters(filterAlphabetical(message).lower().replace("j", "i"), fillerLetter, pad = False) if decrypt == 1 else filterAlphabetical(message).lower()
-    padLength = len(processedMessage) % 2
-    processedMessage = fillLetters(processedMessage, fillerLetter)
+def playfairCipher(message, key: str, fillerLetter = "x", decrypt: int = 1):    
+##    processedMessage = fillLetters(filterAlphabetical(message).lower().replace("j", "i"), fillerLetter, pad = False) if decrypt == 1 else filterAlphabetical(message).lower()
+##    padLength = len(processedMessage) % 2
+##    processedMessage = fillLetters(processedMessage, fillerLetter)
+
+    processedMessage, fillerIndices = fillLetters(message.lower().replace("j", "i"), "x")
+    print("PM ",processedMessage)
     messSplit = splitMessage(processedMessage, 2)
     keyAlpha = generateSquare(key)
     decrypted = {}
-    print(messSplit)
     
     for i in range(0, 5):
         for j in range(0, len(messSplit)):
@@ -201,10 +203,14 @@ def playfairCipher(message, key: str, fillerLetter = "z", decrypt: int = 1):
                     else:
                         lets = [remainingMat[0][0], remainingMat[len(remainingMat)-1][len(remainingMat[0])-1]]
                     decrypted[messSplit[j][0] + messSplit[j][1]] = lets
+        
+##    return formatMessage(message, processedMessage, fillerIndices)
                     
     decrypted = "".join(["".join(decrypted[i]) for i in messSplit])
-    print(formatMessage(message, decrypted, pad_length = padLength))
-    return decrypted.upper()
+    print("decrpted", decrypted)    
+    print("final", formatMessage(message, decrypted, fillerIndices = fillerIndices))
+##    print(formatMessage(message, decrypted, pad_length = padLength))
+##    return decrypted.upper()
             
 #PLAYFAIR CIPHER DECRYPTION
 def decryptPlayfair(message, key: str):
