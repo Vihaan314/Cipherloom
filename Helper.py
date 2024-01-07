@@ -4,9 +4,8 @@ from collections.abc import Callable
 
 from Constants import *
 
-
 """
-String processing
+General string processing
 """
 
 def getNextLetterIndex(string: str, index: str) -> int:
@@ -27,17 +26,45 @@ def replaceChars(string: str, chars: list[str], subs: list[str]) -> str:
         string = string.replace(chars[i], subs[i])
     return string
 
-def getLastOccurance(string: str, target: str):
+def getLastOccurance(string: str, target: str) -> int:
     """
     Returns the index of the last occurance of a target character in a string
     """
     return len(string) - 1 - string[::-1].index(target)
 
-def filterAlphabetical(message: str) -> str:
+def filterAlphabetical(string: str, alpha = ALPHABET_LOWER+ALPHABET_UPPER) -> str:
     """
     Removes all non-alphabetical characters from string
     """
-    return "".join([char for char in message if char.isalpha()])
+    return "".join([char for char in string if char in alpha])
+
+def filterNonAlpha(string: str, nonAlpha = PUNCTUATION) -> str:
+    """
+    Removes all alphabetical characters from string
+    """
+    return "".join([char for char in string if char in nonAlpha])
+
+def splitByPunc(string: str) -> list[str]:
+    """
+    Splits string by punctuation
+    """
+    string = replaceChars(string, list(PUNCTUATION[1:]), [" "]*len(PUNCTUATION[1:]))
+    return string.split()
+    
+def translateTextFromTable(message, translationTable: dict) -> str:
+    """
+    Given a dictionary mapping of ASCII values, will apply the keys to the message
+    """
+    return "".join(chr(translationTable.get(ord(char), ord(char))) for char in message)
+
+"""
+End of general string processing
+"""
+
+
+"""
+Message / key processing
+"""
 
 def splitMessage(message, chunk_size: int) -> list[str]:
     """
@@ -46,57 +73,53 @@ def splitMessage(message, chunk_size: int) -> list[str]:
     message = filterAlphabetical(message)
     return [message[i:i+chunk_size] for i in range(0, len(message), chunk_size)]
 
-##def fillLetters(message: str, fillerLetter: str, pad = True) -> str:
-##    """
-##    Set up message for the playfair cipher
-##    """
-##    i, digraphIndex = 0, 0
-##    while i < len(message) - 1:
-##        if message[i] != " ":
-##            if digraphIndex % 2 == 0 and message[i] == message[i + 1]:
-##                message = message[:i + 1] + "x" + message[i + 1:]
-##                i += 1
-##                digraphIndex += 1
-##            digraphIndex += 1
-##        i += 1
-##    digraphIndex += 1
-##    return message + ((("x" if message[-1] != "x" else fillerLetter) if digraphIndex % 2 else "") if pad else "")
-
-def fillLetters(message: str, fillerLetter: str):
+def addDuplicates(message: str, fillerLetter) -> str:
+    """
+    Breaks up duplicates with a filler letter to avoid digraphs with the same letter
+    """
     i, digraphIndex = 0, 0
-    fillerIndices = []
     duplicateCount = 0
     while i < len(message) - 1:
         if message[i].isalpha():
             if digraphIndex % 2 == 0 and getNextLetterIndex(message, i) != -1 and message[i].lower() == message[getNextLetterIndex(message, i)].lower():
                 message = message[:i + 1] + fillerLetter + message[i + 1:]
-                fillerIndices.append(i + 1)
                 i += 1  
                 digraphIndex += 1
                 duplicateCount += 1
             digraphIndex += 1
         i += 1
+    return message
 
-##        if message[i].isalpha():
-##            if digraphIndex % 2 == 0 and message[i] == message[i + 1]:
-##                message = message[:i + 1] + fillerLetter + message[i + 1:]
-##                fillerIndices.append(i + 1)
-##                i += 1  
-##                digraphIndex += 1
-##                duplicateCount += 1
-##            digraphIndex += 1
-##        i += 1
-    digraphIndex+=1
-    puncCount = len(list(filter(lambda x: not x.isalpha(), message)))
-    if len(filterAlphabetical(message)) % 2:
-        insertPos = getLastOccurance(message, filterAlphabetical(message)[-1])+1
-##        insertPos = message[:].index(filterAlphabetical(message)[-1])+1
-        fillerIndices.append(insertPos)
-        message = message[0:insertPos] + "x" + message[insertPos:]
-        
-    return message, fillerIndices
+def padMessage(message, chunk_size: int, filler_letter = "X", only_alpha=True, ignore_punc = True) -> str:
+    """
+    Pads a given message to be a multiple of a specified chunk size. Optionally filters out non-alphabetical characters and handles punctuation.
 
-    
+    :param chunk_size: The size of each chunk after padding.
+    :param filler_letter: The letter used for padding. Defaults to "X".
+    :param only_alpha: Flag to consider only alphabetical characters. Defaults to True.
+    :param ignore_punc: Flag to ignore punctuation when padding. Defaults to True.
+    :return: The padded message.
+    """
+    modifiedMessage = filterAlphabetical(message) if only_alpha else message
+    paddingLength = getPaddingLength(modifiedMessage, chunk_size, only_alpha=only_alpha)
+    insertPosition = getLastOccurance(message, filterAlphabetical(message)[-1])+1 if not ignore_punc else len(message)
+    return message[:insertPosition] + (filler_letter * paddingLength) + message[insertPosition:]
+
+def fillLetters(message: str, filler_letter: str, chunk_size = 2, pad_duplicates = False, filter_result = False, only_alpha = True, ignore_punc = True) -> str:
+    """
+    Processes a message for classical ciphers by adding fillers and handling duplicates. It can also handle punctuation and split messages into chunks.
+
+    :param filler_letter: The letter used for padding in case of duplicates or for filling.
+    :param chunk_size: The chunk size for splitting the message. Defaults to 2.
+    :param pad_duplicates: Flag to pad consecutive equal letters. Defaults to False.
+    :param filter_result: Flag to filter the message to include or exclude non-alphabetical characters. Defaults to False.
+    :param ignore_punc: Flag to decide if padding should ignore punctuation. Defaults to True.
+    :return: The modified message ready for encryption or decryption.
+    """
+    modifiedMessage = (filterAlphabetical if filter_result else lambda x: x)(addDuplicates(message, filler_letter) if pad_duplicates else message)
+    print("MM", modifiedMessage)
+    return padMessage(modifiedMessage, chunk_size, filler_letter = filler_letter, only_alpha = only_alpha, ignore_punc = ignore_punc)
+
 def applyPunctuation(originalMessage: str, modifiedMessage: str) -> str:
     """
     Adds spacing from original message to modified message
@@ -106,43 +129,54 @@ def applyPunctuation(originalMessage: str, modifiedMessage: str) -> str:
             if (i < len(modifiedMessage) and modifiedMessage[i] != originalMessage[i]) or (i <= len(modifiedMessage)):
                 modifiedMessage = modifiedMessage[0:i] + originalMessage[i] + modifiedMessage[i:]
                 
-    return modifiedMessage    
+    return modifiedMessage
 
-def addFillerIndices(originalMessage, fillerIndices, fillerLetter = "x"):
-    print(originalMessage)
-    addedFillers = list(originalMessage)
-    offset = 0
-    for index in sorted(fillerIndices):
-        actualIndex = index + offset
-        if actualIndex <= len(addedFillers):
-            addedFillers.insert(actualIndex, fillerLetter)
-            offset += 1
-    return "".join(addedFillers)
+def applyCasing(originalMessage: str, modifiedMessage: str, i: int, remove_filler) -> str:
+    """
+    Applies casing from original message to modified message at specified index
+    """
+    return (modifiedMessage[i].lower() if originalMessage[i].islower() else modifiedMessage[i].upper() if originalMessage[i].isupper() else originalMessage[i])
 
-##def formatMessage(originalMessage, modifiedMessage, pad_length = 0) -> str:
-##    """
-##    originalMessage: The original message with capitalized and spacing
-##    modifiedMessage: Encrypted / decrypted message to be formatted 
-##    """
-##    modifiedMessage = applyPunctuation(originalMessage, modifiedMessage)
-##    return "".join([modifiedMessage[i].lower() if originalMessage[i].islower() else modifiedMessage[i].upper() if originalMessage[i].isupper() else originalMessage[i]
-##                    for i in range(0, len(originalMessage))]) + ("" if not pad_length else (modifiedMessage[-1] if pad_length == 1 else (modifiedMessage[-(pad_length):-1]+modifiedMessage[-1])))
-def formatMessage(originalMessage, modifiedMessage, fillerIndices = []) -> str:
+def removeFiller(s):
     """
-    originalMessage: The original message with capitalized and spacing
-    modifiedMessage: Encrypted / decrypted message to be formatted 
+    Detects if there are filler letters and removes them in decryption process
     """
-    originalMessage, fillerIndices = fillLetters(replaceChars(originalMessage, ["j", "J"], ["i", "I"]), "x")
+    endIndex = len(s)
+    while endIndex > 0 and s[endIndex - 1].isupper():
+        endIndex -= 1
+    if endIndex < len(s) and len(set(s[endIndex:])) == 1:
+        s = s[:endIndex]
+
+    normalizedMessage = ""
+    for i in range(len(s)):
+        if s[i].isupper():
+            if (i > 0 and i < len(s) - 1 and s[i-1].isalpha() and s[i-1].islower() and s[i+1].isalpha() and s[i+1].islower()) \
+                    or (i == len(s) - 1 and s[i-1].isalpha() and s[i-1].islower()) \
+                    or (i < len(s) - 1 and s[i+1] in PUNCTUATION and s[i-1].isalpha() and s[i-1].islower()):
+                continue
+        normalizedMessage += s[i]
+    return normalizedMessage
+
+def formatMessage(originalMessage, modifiedMessage, filledLetters = False, pad_duplicates = False, filler_letter = "X", ignore_punc = False, remove_filler = False) -> str:
+    """
+    Formats an encrypted or decrypted message by applying case sensitivity and punctuation from the original message, taking into account padding as well.
+
+    :param originalMessage: The original message with capitalization and spacing.
+    :param modifiedMessage: The encrypted or decrypted message to format.
+    :param filledLetters: Flag indicating if the message has been formatted with padding. Defaults to False.
+    :param pad_duplicates: Flag indicating if duplicates have been removed in padding. Defaults to False.
+    :param neutralize_case: Flag indicating whether to attempt to normalize the casing of the message (e.g. duplicates removed in padding resulting in random capitalization). Defaults to False.
+    :return: The formatted message.
+    """
     print("OM", originalMessage)
+    originalMessage = fillLetters(replaceChars(originalMessage, ["j", "J"], ["i", "I"]), filler_letter=filler_letter, pad_duplicates = pad_duplicates) \
+                      if filledLetters else originalMessage
     modifiedMessage = applyPunctuation(originalMessage, modifiedMessage)
-    return "".join([modifiedMessage[i].lower() if originalMessage[i].islower() else modifiedMessage[i].upper() if originalMessage[i].isupper() else originalMessage[i]
-                    for i in range(0, len(originalMessage))])
-
-def translateTextFromTable(message, translationTable: dict) -> str:
-    """
-    Given a dictionary mapping of ASCII values, will apply the keys to the message
-    """
-    return "".join(chr(translationTable.get(ord(char), ord(char))) for char in message)
+    print(originalMessage, modifiedMessage)
+    return (removeFiller if remove_filler else lambda x: x)("".join([applyCasing(originalMessage, modifiedMessage, i, remove_filler) \
+                                                                           if i < len(originalMessage) else modifiedMessage[i] if not remove_filler else "" \
+                                                        for i in range(0, len(originalMessage))]),) \
+##                                                            originalMessage = originalMessage if (filledLetters == False and remove_filler == True) else "")
 
 def processRepeatedKey(message, key: str):
     """
@@ -153,19 +187,8 @@ def processRepeatedKey(message, key: str):
     key *= (math.ceil(mL / len(key)))
     return key
 
-def padMessage(message, chunk_size: int, filler_letter = "X", filter_alpha=True) -> str:
-    """
-    Given a message that is to be split into chunks of size chunk_size, filler_letters are added to pad the message to be a multiple of the chunk_size
-    """
-    modifiedMessage = filterAlphabetical(message) if filter_alpha else message
-    if len(modifiedMessage) % chunk_size != 0:
-        paddingLength = getPaddingLength(message, chunk_size, filter_alpha = filter_alpha)
-        modifiedMessage += (filler_letter * paddingLength)
-        return formatMessage(message, modifiedMessage, pad_length = paddingLength) if filter_alpha else modifiedMessage
-    return message
-
 """
-End of string processing
+End of message / key processing
 """
 
 
@@ -173,12 +196,12 @@ End of string processing
 Misc
 """
 
-def getPaddingLength(message, chunk_size: int, filter_alpha = True) -> int:
+def getPaddingLength(message, chunk_size: int, only_alpha = True) -> int:
     """
     Returns an integer specifyin the amount of padding in terms of letters a message needs in order to be split into chunks of chunk_size
     """
-    modifiedMessage = filterAlphabetical(message) if filter_alpha else message
-    return (chunk_size - len(modifiedMessage) % chunk_size) % chunk_size
+    modifiedMessage = filterAlphabetical(message) if only_alpha else message
+    return -len(modifiedMessage) % chunk_size
 
 def generateTranslationTable(alphabet1: str, alphabet2: str) -> dict:
     """
@@ -232,7 +255,7 @@ def rearrangeColumn(arr: np.ndarray, column: int, key: list[int]) -> np.ndarray:
     """
     return [arr[i, column] for i in key]
 
-def toSquareMatrix(arr: list[list[int]], oneDim = False):
+def toSquareMatrix(arr: list[list[int]], oneDim = False) -> np.ndarray:
     """
     Converts default list to numpy square array
     """

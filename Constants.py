@@ -2,6 +2,8 @@
 CONSTANTS
 """
 
+PUNCTUATION = " ,.!?1234567890()#@$%&*"
+
 ALPHABET_LOWER = "abcdefghijklmnopqrstuvwxyz"
 ALPHABET_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 

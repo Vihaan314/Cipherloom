@@ -77,4 +77,3 @@ def matrixInverseModN(matrix, mod):
     detInv = inverseMod(det, mod)
     adj = adjugateMatrix(matrix)
     return [[(detInv * adj[i][j]) % mod for j in range(len(matrix))] for i in range(len(matrix))]
-

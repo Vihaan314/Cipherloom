@@ -91,10 +91,9 @@ def columnarTranspositionCipher(message, key: str, decrypt = 1):
     transpose = np.transpose if decrypt == -1 else np.array
     order = sorted(range(0, len(key)), key=lambda x: key[x])
     order = [order.index(i) for i in range(len(key))] if decrypt == -1 else order
-    processedMessage = padMessage((message), len(key), filter_alpha=False)
+    processedMessage = fillLetters(message, "X", chunk_size = len(key), only_alpha=False) if decrypt == 1 else message
     messageMat = transpose(np.array(list(processedMessage)).reshape(*(len(processedMessage)//len(key), len(key))[::decrypt]))
     encrypted = []
-    
     for i in range(0, (len(key) if decrypt == 1 else len(processedMessage)//len(key))):
         chunk = messageMat[:, order[i]] if decrypt == 1 else "".join(rearrangeRow(messageMat, i, order))
         encrypted.append("".join(chunk))
@@ -122,16 +121,18 @@ def decryptAffine(message, a: int, b: int):
 
 
 #HILL CIPHER ENCRYPTION (K * P)
-def hillCipher(message, key: str, fillerLetter = "X", decrypt = 1): 
+def hillCipher(message, key: str, fillerLetter = "X", remove_filler = False, decrypt = 1): 
     if not math.sqrt(len(key)).is_integer():
         return warnings.warn("Wrong key. Please enter a key of square length!")
     
     key = key.lower()
     keySize = int(math.sqrt(len(key)))
     padLength = getPaddingLength(message, keySize)
-    processedMessage = filterAlphabetical(message).lower()
-    processedMessage = padMessage(processedMessage, keySize, filler_letter = fillerLetter)
-    messCaps = formatMessage(message, processedMessage, pad_length = padLength)
+##    processedMessage = filterAlphabetical(message).lower()
+##    processedMessage = padMessage(processedMessage, keySize, filler_letter = fillerLetter)
+    processedMessage = fillLetters(message, fillerLetter.lower(), chunk_size = keySize, filter_result = True)
+    print(processedMessage)
+    messCaps = formatMessage(message, processedMessage)
 
     messageChunks = splitMessage(processedMessage, keySize)
     k = toSquareMatrix(encodeToAlphabetIndices(key), oneDim = True).tolist()
@@ -143,21 +144,22 @@ def hillCipher(message, key: str, fillerLetter = "X", decrypt = 1):
         m = np.array(encodeToAlphabetIndices(chunk)).reshape(keySize, 1)
         encryptedChunk = ([0, k, inverseKey][decrypt] @ m) % 26
         encryptedChunks.append("".join(ALPHABET_LOWER[num[0]] for num in encryptedChunk))
-    return formatMessage(messCaps, "".join(encryptedChunks))
+##    return formatMessage(messCaps, "".join(encryptedChunks))
+    print("".join(encryptedChunks))
+    message = fillLetters(message, fillerLetter, chunk_size = keySize)
+    print("MESSAGE", message)
+    return formatMessage(message, "".join(encryptedChunks), filler_letter=fillerLetter, ignore_punc = True, remove_filler = remove_filler)
+
 
 #HILL CIPHER DECRYPTION (K^(-1) (mod 26) * P)
-def decryptHill(message, key: str): 
-    return hillCipher(message, key, decrypt = -1)
+def decryptHill(message, key: str, remove_filler = True): 
+    return hillCipher(message, key, decrypt = -1, remove_filler = remove_filler)
 
 
 #PLAYFAIR CIPHER ENCRYPTION
-def playfairCipher(message, key: str, fillerLetter = "x", decrypt: int = 1):    
-##    processedMessage = fillLetters(filterAlphabetical(message).lower().replace("j", "i"), fillerLetter, pad = False) if decrypt == 1 else filterAlphabetical(message).lower()
-##    padLength = len(processedMessage) % 2
-##    processedMessage = fillLetters(processedMessage, fillerLetter)
-
-    processedMessage, fillerIndices = fillLetters(message.lower().replace("j", "i"), "x")
-    print("PM ",processedMessage)
+def playfairCipher(message, key: str, fillerLetter = "X", remove_filler = False, decrypt: int = 1):
+    processedMessage = fillLetters(message.lower().replace("j", "i"), fillerLetter.lower(), pad_duplicates = True, ignore_punc=False)
+    
     messSplit = splitMessage(processedMessage, 2)
     keyAlpha = generateSquare(key)
     decrypted = {}
@@ -203,18 +205,13 @@ def playfairCipher(message, key: str, fillerLetter = "x", decrypt: int = 1):
                     else:
                         lets = [remainingMat[0][0], remainingMat[len(remainingMat)-1][len(remainingMat[0])-1]]
                     decrypted[messSplit[j][0] + messSplit[j][1]] = lets
-        
-##    return formatMessage(message, processedMessage, fillerIndices)
-                    
+                            
     decrypted = "".join(["".join(decrypted[i]) for i in messSplit])
-    print("decrpted", decrypted)    
-    print("final", formatMessage(message, decrypted, fillerIndices = fillerIndices))
-##    print(formatMessage(message, decrypted, pad_length = padLength))
-##    return decrypted.upper()
+    return formatMessage(message, decrypted, filledLetters = True, pad_duplicates = True, filler_letter=fillerLetter, remove_filler = remove_filler)
             
 #PLAYFAIR CIPHER DECRYPTION
-def decryptPlayfair(message, key: str):
-    return playfairCipher(message, key, decrypt = -1)    
+def decryptPlayfair(message, key: str, remove_filler = True):
+    return playfairCipher(message, key, remove_filler = remove_filler, decrypt = -1)    
 
 
 """

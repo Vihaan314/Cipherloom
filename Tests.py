@@ -89,11 +89,11 @@ class TestCipherMethods(unittest.TestCase):
         ("repeated key", "Hello welcome to the program", "cheese", "Hwehgllt alcopm mtoXee eroo rX"),
         ("non-alphabetic", "Hello, World! 123", "hello", "e d3H,l2lW!Xlo Xor1X"),
     ])
-    def test_columnarTranspositionCipher(self, name, input_text, key, expected):
-        encrypted = columnarTranspositionCipher(input_text, key)
+    def test_columnarTranspositionCipher(self, name, message, key, expected):
+        encrypted = columnarTranspositionCipher(message, key)
         self.assertEqual(encrypted, expected)
         decrypted = decryptColumnarTransposition(encrypted, key)
-        self.assertIn(input_text, decrypted)
+        self.assertIn(message, decrypted)
 
         
     #AFFINE CIPHER
@@ -103,62 +103,58 @@ class TestCipherMethods(unittest.TestCase):
         ("sample sentence", "Hey man, can you get the lights? Thanks.", 11, 18, "Rkw usf, osf wqe gkt trk jcgrti? Trsfyi."),
         ("invalid a", "Hello World", 13, 8, None),
     ])
-    def test_affineCipher(self, name, input_text, a, b, expected):
+    def test_affineCipher(self, name, message, a, b, expected):
         if expected is not None:
-            encrypted = affineCipher(input_text, a, b)
+            encrypted = affineCipher(message, a, b)
             self.assertEqual(encrypted, expected)
             decrypted = decryptAffine(encrypted, a, b)
-            self.assertEqual(decrypted, input_text)
+            self.assertEqual(decrypted, message)
         else:
             with self.assertWarns(Warning):
-                affineCipher(input_text, a, b)
+                affineCipher(message, a, b)
                 
         
     #HILL CIPHER
     @parameterized.expand([
-        ("standard case", "Hello World", "CDFH", "X", "Aldcq Qbhfy"),
-        ("uneven non-alphabetical", "Hello, World!", "gybnqkurp", "X", "Tfjip, Ijsgv!NQ"),
-        ("greater key length", "Hello, World!", "gybpmicnotmixmub", "X", "Cveyx, Vizmh!VS"),
-        ("uneven key, filler letter", "Welcome, cheese.", "gybnqkurp", "Z", "Fsxwgqb, ylikcz.AW"),
-        ("greater key, filler letter", "Hello, World!", "gybpmicnotmixmub", "Z", "Cveyx, Vizsl!JI"),
-        ("non-square key", "Hello World", "nonSquareKey", "X", None),
+        ("standard case", "Hello World", "CDFH", "X", "Aldcq Qbhfy", False),
+        ("uneven non-alphabetical", "Hello, World", "gybnqkurp", "X", "Tfjip, IjsgvNQ", False),
+        ("greater key length", "Hello, World!", "gybpmicnotmixmub", "X", "Cveyx, Vizmh!VS", True),
+        ("uneven key, filler letter", "Welcome, cheese", "gybnqkurp", "Z", "Fsxwgqb, ylikczAW", True),
+        ("greater key, filler letter", "Hello, World!", "gybpmicnotmixmub", "Z", "Cveyx, Vizsl!JI", False),
+        ("non-square key", "Hello World", "nonSquareKey", "X", None, False),
     ])
-    def test_hillCipher(self, name, input_text, key, fillerLetter, expected):
-        if expected is not None:
-            encrypted = hillCipher(input_text, key, fillerLetter = fillerLetter)
-            self.assertEqual(encrypted, expected)
-            decrypted = decryptHill(encrypted, key)
-            self.assertIn(input_text, decrypted)
+    def test_hillCipher(self, name, message, key, fillerLetter, expected_encrypted, remove_filler):
+        if expected_encrypted is not None:
+            encrypted = hillCipher(message, key, fillerLetter = fillerLetter)
+            self.assertEqual(encrypted, expected_encrypted)
+            decrypted = decryptHill(encrypted, key, remove_filler = remove_filler)
+            if remove_filler:
+                self.assertEqual(message, decrypted)
+            else:
+                self.assertIn(message, decrypted)
         else:
             with self.assertWarns(Warning):
-                hillCipher(input_text, key)
+                hillCipher(message, key)
                 
         
     #PLAYFAIR CIPHER
-                #Dcode
-                #Jazz, dude sirs! What you doing?
-                #Jazz, dude sirs! What you doing
-                #Jazz, dude sirs! Weelh you doing?
-                #Jazz, dude sirs! Weelh you doing
-                #Jazz, dude sirs Weelh you jazzin
-                #Jazz, dude sirs! Stop the jazz?
-                #Jazz, dude sirs! Stop, pls jazz? Ab123
     @parameterized.expand([
-        ("standard case", "Pictures", "mango", "Hkerqsdt"),
-        ("non-alphabetical", "Hello, World!", "diamond", "Lbkyp, Mzith!"),
-        ("uneven message", "Hello man", "Apple"),
-        ("edge case 1", "dcode", ""),
-        ("edge case 2", "Jazz, dude sirs! What you doing?"),
-        ("edge case 3", "Jazz, dude sirs! What you doing"),
-        ("edge case 4", "Jazz, dude sirs! Weelh you doing?"),
-        ("edge case 5", "Jazz, dude sirs Weelh you jazzin", ),
-        ("edge case 6", "Jazz, dude sirs! Stop the jazz", ),
+        ("standard case unnormalized", "Pictures", "mango", "X", "Hkerqsdt", False, "Pictures"),
+        ("non-alphabetical u.n", "Hello, World!", "Diamond", "X", "LbkYpm, ZithaV!", False, "HelXlo, WorldX!"),
+        ("uneven message", "Hello man", "APPLE", "X", "GbfLbm ilmY", True, "Hello man"),
+        ("duplicates, n.a u.n", "Jazz, dude sirs! What you doing?", "cheese", "X", "OivYw, iqis afuh! Yecy suz ilgofY?", False, "IazXz, dude sirs! What you doingX?"),
+        ("duplicates, n.a., u.n", "Jazz, dude sirs! What you doing", "cheese", "X", "OivYw, iqis afuh! Yecy suz ilgofY", True, "Iazz, dude sirs! What you doing"),
+        ("custom filler q, n.a", "Jazz, dude sirs! Weelh you doing?", "meeting", "Q", "EcwUn, ozoi qtsq! YaWihl wuz ounmaP?", True, "Iazz, dude sirs! Weelh you doing?"),
+        ("duplicates, n.a, custom filler lower u.n", "Jazz, dude sirs! Weelh you doing", "meeting", "q", "Ecwun, ozoi qtsq! Yawihl wuz ounmap", False, "Iazqz, dude sirs! Weqelh you doingq"),
+        ("lots of duplicates, n.a u.n", "Jazz, dude sirs Weelh you jazzin?", "Mango", "X", "RcvYx, fsfd trwr XdYltl vfz rcvYwpdN?", False, "IazXz, dude sirs WeXelh you iazXzinX?"),
+        ("duplicates with punc, empty key, n.a", "Jazz, dude sirs! Stop, pls jazz? Ab123", "", "X", "FdvYy, etec ugtxC! Tupl, lmt hevv? EcW123", True, "Iazz, dude sirs! Stop, pls iazz? Ab123"),
+        ("lots of duplicates with punc, n.a", "Jazz, dude sirs! Stoopp, pls jazz?", "secret", "X", "HbvYx, gpgc elecV! EspWpqxC, qke hgvvY?", True, "Iazz, dude sirs! Stoopp, pls iazz?")
     ])
-    def test_playfairCipher(self, name, input_text, key, expected):
-        encrypted = playfairCipher(input_text, key)
-        self.assertEqual(encrypted, expected)
-        decrypted = decryptPlayfair(encrypted, key)
-        self.assertEqual(decrypted, input_text)
+    def test_playfairCipher(self, name, message, key, fillerLetter, expected_encrypted, remove_filler, expected_decrypted):
+        encrypted = playfairCipher(message, key, fillerLetter = fillerLetter)
+        self.assertEqual(encrypted, expected_encrypted)
+        decrypted = decryptPlayfair(encrypted, key, remove_filler = remove_filler)
+        self.assertEqual(decrypted, expected_decrypted)
         
 
 if __name__ == '__main__':
