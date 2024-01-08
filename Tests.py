@@ -1,8 +1,8 @@
 import unittest
 from parameterized import parameterized
 
+from Constants import ALPHABET_LOWER_REVERSE
 from Cipherloom import *
-from Constants import *
 
 class TestCipherMethods(unittest.TestCase):
     
@@ -70,7 +70,7 @@ class TestCipherMethods(unittest.TestCase):
         self.assertEqual(decrypted, message)
 
 
-    #VIGENERE CIPHER TESTS
+    # VIGENERE CIPHER TESTS
     @parameterized.expand([
         ("standard case", "Hello World", "KEY", "Rijvs Uyvjn"),
         ("non-alphabetic", "Hello, World! Welcome to the cipher.", "Cheese", "Jlppg, Aqyph! Oinjsqw xq ali umroiv."),
@@ -83,7 +83,7 @@ class TestCipherMethods(unittest.TestCase):
         self.assertEqual(decrypted, message)
 
 
-    #TRANSPOSITION CIPHER
+    # TRANSPOSITION CIPHER
     @parameterized.expand([
         ("standard case", "Hello World", "key", "eoodHlWll rX"),
         ("repeated key", "Hello welcome to the program", "cheese", "Hwehgllt alcopm mtoXee eroo rX"),
@@ -96,7 +96,7 @@ class TestCipherMethods(unittest.TestCase):
         self.assertIn(message, decrypted)
 
         
-    #AFFINE CIPHER
+    # AFFINE CIPHER
     @parameterized.expand([
         ("standard case", "Hello World", 5, 8, "Rclla Oaplx"),
         ("non-alphabetic", "Hello, World! 123", 17, 20, "Jkzzy, Eyxzt! 123"),
@@ -114,7 +114,7 @@ class TestCipherMethods(unittest.TestCase):
                 affineCipher(message, a, b)
                 
         
-    #HILL CIPHER
+    # HILL CIPHER
     @parameterized.expand([
         ("standard case", "Hello World", "CDFH", "X", "Aldcq Qbhfy", False),
         ("uneven non-alphabetical", "Hello, World", "gybnqkurp", "X", "Tfjip, IjsgvNQ", False),
@@ -137,7 +137,7 @@ class TestCipherMethods(unittest.TestCase):
                 hillCipher(message, key)
                 
         
-    #PLAYFAIR CIPHER
+    # PLAYFAIR CIPHER
     @parameterized.expand([
         ("standard case unnormalized", "Pictures", "mango", "X", "Hkerqsdt", False, "Pictures"),
         ("non-alphabetical u.n", "Hello, World!", "Diamond", "X", "LbkYpm, ZithaV!", False, "HelXlo, WorldX!"),
@@ -157,5 +157,5 @@ class TestCipherMethods(unittest.TestCase):
         self.assertEqual(decrypted, expected_decrypted)
         
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
