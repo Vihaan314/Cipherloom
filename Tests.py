@@ -123,9 +123,9 @@ class TestCipherMethods(unittest.TestCase):
         ("greater key, filler letter", "Hello, World!", "gybpmicnotmixmub", "Z", "Cveyx, Vizsl!JI", False),
         ("non-square key", "Hello World", "nonSquareKey", "X", None, False),
     ])
-    def test_hillCipher(self, name, message, key, fillerLetter, expected_encrypted, remove_filler):
+    def test_hillCipher(self, name, message, key, filler_letter, expected_encrypted, remove_filler):
         if expected_encrypted is not None:
-            encrypted = hillCipher(message, key, fillerLetter = fillerLetter)
+            encrypted = hillCipher(message, key, filler_letter = filler_letter)
             self.assertEqual(encrypted, expected_encrypted)
             decrypted = decryptHill(encrypted, key, remove_filler = remove_filler)
             if remove_filler:
@@ -150,8 +150,8 @@ class TestCipherMethods(unittest.TestCase):
         ("duplicates with punc, empty key, n.a", "Jazz, dude sirs! Stop, pls jazz? Ab123", "", "X", "FdvYy, etec ugtxC! Tupl, lmt hevv? EcW123", True, "Iazz, dude sirs! Stop, pls iazz? Ab123"),
         ("lots of duplicates with punc, n.a", "Jazz, dude sirs! Stoopp, pls jazz?", "secret", "X", "HbvYx, gpgc elecV! EspWpqxC, qke hgvvY?", True, "Iazz, dude sirs! Stoopp, pls iazz?")
     ])
-    def test_playfairCipher(self, name, message, key, fillerLetter, expected_encrypted, remove_filler, expected_decrypted):
-        encrypted = playfairCipher(message, key, fillerLetter = fillerLetter)
+    def test_playfairCipher(self, name, message, key, filler_letter, expected_encrypted, remove_filler, expected_decrypted):
+        encrypted = playfairCipher(message, key, filler_letter = filler_letter)
         self.assertEqual(encrypted, expected_encrypted)
         decrypted = decryptPlayfair(encrypted, key, remove_filler = remove_filler)
         self.assertEqual(decrypted, expected_decrypted)
