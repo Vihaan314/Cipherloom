@@ -1,13 +1,14 @@
 # Cipherloom
 Implementations of ciphers in python
 Ciphers:
-#CAESER CIPHER
-#ROT13 CIPHER
-#TRITHEMIUS CIPHER
-#ATBASH CIPHER
-#MONOALPHABETIC CIPHER
-#VIGENERE CIPHER
-#TRANSPOSITION CIPHER
-#AFFINE CIPHER
-#HILL CIPHER
-#PLAYFAIR CIPHER
+* Caesar Cipher
+* ROT13 Cipher
+* Trithemius Cipher
+* Atbash Cipher
+* Monoalphabetic Cipher
+* Vigenère Cipher
+* Transposition Cipher
+* Affine Cipher
+* Hill Cipher
+* Playfair Cipher
+
