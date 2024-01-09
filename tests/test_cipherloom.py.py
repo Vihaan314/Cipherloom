@@ -1,8 +1,8 @@
 import unittest
 from parameterized import parameterized
 
-from Constants import ALPHABET_LOWER_REVERSE
-from Cipherloom import *
+from .constants import ALPHABET_LOWER_REVERSE
+from .cipherloom import *
 
 class TestCipherMethods(unittest.TestCase):
     

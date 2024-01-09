@@ -2,13 +2,33 @@ import math
 import numpy as np
 import warnings
 
-from Constants import *
-from StringUtils import filterAlphabetical, splitByChunk, translateTextFromTable
-import ProcessingUtils
-from ProcessingUtils import formatMessage, fillLetters
-import GeneralUtils
-import MathUtils
+from .constants import ALPHABET_UPPER, ALPHABET_LOWER
+from .string_utils import filterAlphabetical, splitByChunk, translateTextFromTable
+from .processing_utils import formatMessage, fillLetters
+from . import processing_utils
+from . import general_utils
+from . import math_utils
 
+"""
+Cipher general class
+"""
+
+class BaseCipher:
+    def __init__(self, key):
+        self.key = key
+
+    def set_key(self, new_key):
+        self.key = new_key
+
+    def encrypt(self, message):
+        raise NotImplementedError
+
+    def decrypt(self, message):
+        raise NotImplementedError
+
+"""
+Cipher general class
+"""
 
 """
 IMPLEMENTATIONS
@@ -24,9 +44,10 @@ IMPLEMENTATIONS
 #HILL CIPHER
 #PLAYFAIR CIPHER
 
+
 #CAESER CIPHER ENCRYPTION
 def caesarCipher(message, key: int, decrypt = 1):
-    encrypted = GeneralUtils.encodeAlphabeticalFunction(message, lambda x: (x+decrypt*key))
+    encrypted = general_utils.encodeAlphabeticalFunction(message, lambda x: (x+decrypt*key))
     return formatMessage(message, "".join(encrypted))
 
 #CAESER CIPHER DECRYPTION
@@ -68,7 +89,7 @@ def monoalphabeticCipher(message, key: str, decrypt=1):
     processedMessage = filterAlphabetical(message).upper()
     key = key.upper()
     alphabet1, alphabet2 = (ALPHABET_UPPER, key)[::decrypt]
-    encrypted = translateTextFromTable(processedMessage, GeneralUtils.generateTranslationTable(alphabet1, alphabet2))
+    encrypted = translateTextFromTable(processedMessage, general_utils.generateTranslationTable(alphabet1, alphabet2))
     return formatMessage(message, encrypted)
 
 #MONOALPHABETIC CIPHER DECRYPTION
@@ -79,7 +100,7 @@ def decryptMonoalphabetic(message, key: str):
 #VIGENERE CIPHER ENCRYPTION
 def vigenereCipher(message, key: str, decrypt = 1): 
     processedMessage = filterAlphabetical(message).upper()
-    key = formatMessage(processedMessage, ProcessingUtils.processRepeatedKey(message, key))[:len(message)]
+    key = formatMessage(processedMessage, processing_utils.processRepeatedKey(message, key))[:len(message)]
     encrypted = [chr((ALPHABET_UPPER.index(processedMessage[i]) + decrypt*ALPHABET_UPPER.index(key[i])) % 26 + 65) for i in range(0, len(processedMessage))]
     return formatMessage(message, "".join(encrypted))
 
@@ -97,7 +118,7 @@ def columnarTranspositionCipher(message, key: str, decrypt = 1):
     messageMat = transpose(np.array(list(processedMessage)).reshape(*(len(processedMessage)//len(key), len(key))[::decrypt]))
     encrypted = []
     for i in range(0, (len(key) if decrypt == 1 else len(processedMessage)//len(key))):
-        chunk = messageMat[:, order[i]] if decrypt == 1 else "".join(MathUtils.rearrangeRow(messageMat, i, order))
+        chunk = messageMat[:, order[i]] if decrypt == 1 else "".join(math_utils.rearrangeRow(messageMat, i, order))
         encrypted.append("".join(chunk))
     return "".join(encrypted)
     
@@ -108,13 +129,13 @@ def decryptColumnarTransposition(message, key: str):
 
 #AFFINE CIPHER ENCRYPTION
 def affineCipher(message, a: int, b: int, decrypt = 1):
-    gcd, x, y = MathUtils.extendedEuclidean(a, 26)
+    gcd, x, y = math_utils.extendedEuclidean(a, 26)
     if gcd != 1:
         return warnings.warn("Modular inverse does not exist!")
     else:
         aInv = x % 26
     operation = lambda i: a*i+b if decrypt == 1 else aInv*(i-b)
-    encrypted = GeneralUtils.encodeAlphabeticalFunction(message, operation)
+    encrypted = general_utils.encodeAlphabeticalFunction(message, operation)
     return formatMessage(message, "".join(encrypted))
 
 #AFFINE CIPHER DECRYPTION
@@ -129,18 +150,18 @@ def hillCipher(message, key: str, filler_letter = "X", remove_filler = False, de
     
     key = key.lower()
     keySize = int(math.sqrt(len(key)))
-    padLength = ProcessingUtils.getPaddingLength(message, keySize)
+    padLength = processing_utils.getPaddingLength(message, keySize)
     processedMessage = fillLetters(message, filler_letter.lower(), chunk_size = keySize, filter_result = True)
     messCaps = formatMessage(message, processedMessage)
 
     messageChunks = splitByChunk(processedMessage, keySize)
-    k = MathUtils.toSquareMatrix(GeneralUtils.encodeToAlphabetIndices(key), oneDim = True).tolist()
-    inverseKey = MathUtils.toSquareMatrix(MathUtils.matrixInverseModN(k, 26))
-    if not MathUtils.isMatrixInvertibleModN(k, 26):
+    k = math_utils.toSquareMatrix(general_utils.encodeToAlphabetIndices(key), oneDim = True).tolist()
+    inverseKey = math_utils.toSquareMatrix(math_utils.matrixInverseModN(k, 26))
+    if not math_utils.isMatrixInvertibleModN(k, 26):
         return warnings.warn("Key is not invertible mod 26. Message cannot be decrypted!")
     encryptedChunks = []
     for chunk in messageChunks:
-        m = np.array(GeneralUtils.encodeToAlphabetIndices(chunk)).reshape(keySize, 1)
+        m = np.array(general_utils.encodeToAlphabetIndices(chunk)).reshape(keySize, 1)
         encryptedChunk = ([0, k, inverseKey][decrypt] @ m) % 26
         encryptedChunks.append("".join(ALPHABET_LOWER[num[0]] for num in encryptedChunk))
         
@@ -157,7 +178,7 @@ def decryptHill(message, key: str, remove_filler = True):
 def playfairCipher(message, key: str, filler_letter = "X", remove_filler = False, decrypt: int = 1):
     processedMessage = fillLetters(message.lower().replace("j", "i"), filler_letter.lower(), pad_duplicates = True, ignore_punc=False)
     messSplit = splitByChunk(processedMessage, 2)
-    keyAlpha = ProcessingUtils.generateKeyMatrix(key)
+    keyAlpha = processing_utils.generateKeyMatrix(key)
     decrypted = {}
     
     for i in range(0, 5):

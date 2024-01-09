@@ -1,8 +1,8 @@
 import numpy as np
 from collections.abc import Callable
 
-from Constants import *
-from StringUtils import filterAlphabetical
+from .constants import ALPHABET_UPPER, ALPHABET_LOWER
+from .string_utils import filterAlphabetical
 
 """
 General functions

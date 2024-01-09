@@ -1,4 +1,4 @@
-from Constants import *
+from .constants import ALPHABET_LOWER, ALPHABET_UPPER, PUNCTUATION
 
 """
 General string processing

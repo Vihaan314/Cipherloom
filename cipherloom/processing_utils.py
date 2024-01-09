@@ -1,8 +1,8 @@
 import math
 import numpy as np
 
-from Constants import *
-from StringUtils import getNextLetterIndex, getLastOccurance, filterAlphabetical, replaceChars
+from .constants import ALPHABET_LOWER, ALPHABET_UPPER, PUNCTUATION
+from .string_utils import getNextLetterIndex, getLastOccurance, filterAlphabetical, replaceChars
 
 """
 Message processing
