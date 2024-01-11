@@ -3,8 +3,9 @@ from parameterized import parameterized
 from cipherloom import (
     CaesarCipher, ROT13Cipher, TrithemiusCipher, AtbashCipher,
     MonoalphabeticCipher, VigenereCipher, TranspositionCipher,
-    AffineCipher, HillCipher, PlayfairCipher
+    AffineCipher, HillCipher, PlayfairCipher,
 )
+from cipherloom.constants import ALPHABET_LOWER_REVERSE
 
 class TestCipherMethods(unittest.TestCase):
     def _test_encryption_decryption(self, cipher_class, label, message, cipher_args, expected_encrypted, expected_decrypted=None, **kwargs):
