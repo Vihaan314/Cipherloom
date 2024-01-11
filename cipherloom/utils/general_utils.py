@@ -1,7 +1,7 @@
 import numpy as np
 from collections.abc import Callable
 
-from .constants import ALPHABET_UPPER, ALPHABET_LOWER
+from ..constants import ALPHABET_UPPER, ALPHABET_LOWER
 from .string_utils import filterAlphabetical
 
 """

@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-from .constants import ALPHABET_LOWER, ALPHABET_UPPER, PUNCTUATION
+from ..constants import ALPHABET_LOWER, ALPHABET_UPPER, PUNCTUATION
 from .string_utils import getNextLetterIndex, getLastOccurance, filterAlphabetical, replaceChars
 
 """

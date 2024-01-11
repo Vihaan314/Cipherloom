@@ -1,6 +1,6 @@
 # Cipherloom
-Implementations of ciphers in python
-Ciphers:
+A collection of implementations and utilities of classical ciphers in python.
+Ciphers supported:
 * Caesar Cipher
 * ROT13 Cipher
 * Trithemius Cipher

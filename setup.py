@@ -1,12 +1,12 @@
-import setuptools, find_packages
+from setuptools import setup, find_packages
 
-setuptools.setup(
+setup(
     name="cipherloom",
     version="0.1",
     author="Vihaan Mathur",
     author_email="vihaan.mathur3141@gmail.com",
     url="https://github.com/Vihaan314/Cipherloom",
-    description="A collection of cipher utilities",
+    description="A collection of classical cipher implementations and utilities",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
     classifiers=[
@@ -15,6 +15,6 @@ setuptools.setup(
         "Operating System :: OS Independent"
     ],
     packages = find_packages(),
-    python_requires=">=3.6",
+    python_requires=">=3.9",
     install_requires=["numpy", "Parametrized"],
 )
