@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="cipherloom",
-    version="0.1",
+    version="0.1.0",
     author="Vihaan Mathur",
     author_email="vihaan.mathur3141@gmail.com",
     url="https://github.com/Vihaan314/Cipherloom",
